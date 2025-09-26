@@ -60,8 +60,6 @@ export default function CameraEffectApp() {
         };
     }, []);
 
-
-
     async function captureAndDownload() {
         setStatus("Gerando foto...");
         try {
@@ -75,7 +73,6 @@ export default function CameraEffectApp() {
 
             const video = videoRef.current;
 
-            // Desenhar vídeo no canvas (cover)
             const vw = video.videoWidth;
             const vh = video.videoHeight;
             const scale = Math.max(W / vw, H / vh);
@@ -85,7 +82,6 @@ export default function CameraEffectApp() {
             const sy = (vh - sh) / 2;
             ctx.drawImage(video, sx, sy, sw, sh, 0, 0, W, H);
 
-            // Desenhar overlay proporcional ao canvas (mantendo proporção)
             const overlay = overlayRef.current;
             if (overlay) {
                 const ow = overlay.width;
@@ -98,7 +94,6 @@ export default function CameraEffectApp() {
                 ctx.drawImage(overlay, ox, oy, owScaled, ohScaled);
             }
 
-            // Salvar imagem
             canvas.toBlob((blob) => {
                 if (!blob) return;
                 const url = URL.createObjectURL(blob);
@@ -120,80 +115,101 @@ export default function CameraEffectApp() {
     }
 
     return (
-        <div style={{ padding: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-            <div
+        <div style={{
+            position: "relative",
+            width: "100vw",
+            height: "100vh",
+            overflow: "hidden",
+            background: "#000",
+        }}>
+            {/* vídeo ocupando a tela toda */}
+            <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
                 style={{
-                    position: "relative",
-                    width: 270,
-                    height: 480,
-                    maxWidth: "100%",
-                    overflow: "hidden",
-                    borderRadius: 12,
-                    background: "#000",
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    transform: "scaleX(-1)", // espelhado como câmera frontal
+                    zIndex: 1,
                 }}
-            >
-                {/* vídeo */}
-                <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
+            />
+
+            {/* overlay proporcional */}
+            {overlayLoaded && (
+                <img
+                    src={overlayImg?.src ?? overlayImg}
+                    alt="Overlay"
                     style={{
                         position: "absolute",
-                        inset: 0,
+                        top: "50%",
+                        left: "50%",
                         width: "100%",
                         height: "100%",
-                        objectFit: "cover",
-                        zIndex: 1,
-                        transform: "scaleX(-1)",
+                        objectFit: "contain",
+                        transform: "translate(-50%, -50%)",
+                        pointerEvents: "none",
+                        zIndex: 2,
                     }}
                 />
+            )}
 
-                {/* overlay proporcional */}
-                {overlayLoaded && (
-                    <img
-                        src={overlayImg?.src ?? overlayImg}
-                        alt="Overlay"
+            {/* botões flutuantes */}
+            <div style={{
+                position: "absolute",
+                bottom: 20,
+                left: "50%",
+                transform: "translateX(-50%)",
+                display: "flex",
+                gap: 12,
+                zIndex: 3,
+            }}>
+                <button onClick={captureAndDownload} style={{
+                    padding: "12px 20px",
+                    borderRadius: 50,
+                    background: "#4f46e5",
+                    color: "#fff",
+                    border: "none",
+                    fontSize: 16
+                }}>
+                    📸 Capturar
+                </button>
+
+                {lastBlobUrl && (
+                    <button
+                        onClick={() => window.open(lastBlobUrl, "_blank")}
                         style={{
-                            position: "absolute",
-                            zIndex: 2,
-                            top: "50%",
-                            left: "50%",
-                            width: "auto",
-                            height: "100%",
-                            maxWidth: "100%",
-                            transform: "translate(-50%, -50%)",
-                            pointerEvents: "none",
-                            opacity: 1, // força a visibilidade
+                            padding: "12px 20px",
+                            borderRadius: 50,
+                            background: "#fff",
+                            border: "1px solid #ddd",
+                            fontSize: 16,
                         }}
-                    />
-
+                    >
+                        📂 Ver última
+                    </button>
                 )}
             </div>
 
-            <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={captureAndDownload} style={{ padding: "8px 14px", borderRadius: 8, background: "#4f46e5", color: "#fff", border: "none" }}>
-                    Capturar e Salvar
-                </button>
-
-                <button
-                    onClick={() => {
-                        if (lastBlobUrl) window.open(lastBlobUrl, "_blank");
-                    }}
-                    disabled={!lastBlobUrl}
-                    style={{
-                        padding: "8px 14px",
-                        borderRadius: 8,
-                        border: "1px solid #ddd",
-                        background: lastBlobUrl ? "#fff" : "#f5f5f5",
-                        cursor: lastBlobUrl ? "pointer" : "not-allowed",
-                    }}
-                >
-                    Ver última
-                </button>
+            {/* status no canto */}
+            <div style={{
+                position: "absolute",
+                top: 10,
+                left: "50%",
+                transform: "translateX(-50%)",
+                fontSize: 14,
+                color: "#fff",
+                background: "rgba(0,0,0,0.5)",
+                padding: "4px 10px",
+                borderRadius: 8,
+                zIndex: 3
+            }}>
+                {status} {overlayLoaded ? "(overlay carregado)" : "(carregando overlay...)"}
             </div>
-
-            <div style={{ fontSize: 13, color: "#444" }}>{status} {overlayLoaded ? "(overlay carregado)" : "(carregando overlay...)"}</div>
 
             <canvas ref={canvasRef} style={{ display: "none" }} />
         </div>
