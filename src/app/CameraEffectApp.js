@@ -134,29 +134,28 @@ export default function CameraEffectApp() {
                     width: "100%",
                     height: "100%",
                     objectFit: "cover",
-                    transform: "scaleX(-1)", // espelhado como câmera frontal
+                    transform: "scaleX(-1)", // espelho câmera frontal
                     zIndex: 1,
                 }}
             />
 
-            {/* overlay proporcional */}
+            {/* overlay cobrindo toda a câmera */}
             {overlayLoaded && (
                 <img
                     src={overlayImg?.src ?? overlayImg}
                     alt="Overlay"
                     style={{
                         position: "absolute",
-                        top: "50%",
-                        left: "50%",
+                        inset: 0,
                         width: "100%",
                         height: "100%",
-                        objectFit: "contain",
-                        transform: "translate(-50%, -50%)",
+                        objectFit: "cover",
                         pointerEvents: "none",
                         zIndex: 2,
                     }}
                 />
             )}
+
 
             {/* botões flutuantes */}
             <div style={{
@@ -208,7 +207,22 @@ export default function CameraEffectApp() {
                 borderRadius: 8,
                 zIndex: 3
             }}>
-                {status} {overlayLoaded ? "(overlay carregado)" : "(carregando overlay...)"}
+                {overlayLoaded && (
+                    <img
+                        src={overlayImg?.src ?? overlayImg}
+                        alt="Overlay"
+                        style={{
+                            position: "absolute",
+                            inset: 0,            // cobre toda a área
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",  // expande cobrindo a tela
+                            pointerEvents: "none",
+                            zIndex: 2,
+                        }}
+                    />
+                )}
+
             </div>
 
             <canvas ref={canvasRef} style={{ display: "none" }} />
