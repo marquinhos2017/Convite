@@ -63,23 +63,20 @@ export default function CameraEffectApp() {
         const factor = (size - 1) / 255;
 
         for (let i = 0; i < data.length; i += 4) {
-            const r_idx = Math.round(data[i] * factor);     // R (Vermelho)
-            const g_idx = Math.round(data[i + 1] * factor); // G (Verde)
-            const b_idx = Math.round(data[i + 2] * factor); // B (Azul)
+            const r_idx = Math.min(size - 1, Math.floor(data[i] * factor));
+            const g_idx = Math.min(size - 1, Math.floor(data[i + 1] * factor));
+            const b_idx = Math.min(size - 1, Math.floor(data[i + 2] * factor));
+
 
             // 🛑 MUDAR ESTA LINHA: De RGB para BGR
             // const index = r_idx * size * size + g_idx * size + b_idx; // Ordem RGB (Original)
             const index = b_idx * size * size + g_idx * size + r_idx; // Ordem BGR (Tentar esta)
 
             const lutEntry = lut.data[index];
-
-            // ... (código restante)
-
-
             if (lutEntry) {
-                data[i] = Math.round(lutEntry[0] * 255);
-                data[i + 1] = Math.round(lutEntry[1] * 255);
-                data[i + 2] = Math.round(lutEntry[2] * 255);
+                data[i] = Math.min(255, Math.max(0, Math.round(lutEntry[0] * 255)));
+                data[i + 1] = Math.min(255, Math.max(0, Math.round(lutEntry[1] * 255)));
+                data[i + 2] = Math.min(255, Math.max(0, Math.round(lutEntry[2] * 255)));
             }
         }
         return imageData;
