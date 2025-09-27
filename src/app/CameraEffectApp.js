@@ -15,7 +15,7 @@ export default function CameraEffectApp() {
     const [currentLut, setCurrentLut] = useState(null);
     const [effectType, setEffectType] = useState('default');
 
-    const cubeOverlayUrl = "/overlays/a.cube";
+    const cubeOverlayUrl = "/overlays/5.cube";
 
     // --- Função para carregar LUT .cube ---
     const loadCubeLut = useCallback(async (url) => {
@@ -63,12 +63,18 @@ export default function CameraEffectApp() {
         const factor = (size - 1) / 255;
 
         for (let i = 0; i < data.length; i += 4) {
-            const r_idx = Math.round(data[i] * factor);
-            const g_idx = Math.round(data[i + 1] * factor);
-            const b_idx = Math.round(data[i + 2] * factor);
+            const r_idx = Math.round(data[i] * factor);     // R (Vermelho)
+            const g_idx = Math.round(data[i + 1] * factor); // G (Verde)
+            const b_idx = Math.round(data[i + 2] * factor); // B (Azul)
 
-            const index = r_idx * size * size + g_idx * size + b_idx;
+            // 🛑 MUDAR ESTA LINHA: De RGB para BGR
+            // const index = r_idx * size * size + g_idx * size + b_idx; // Ordem RGB (Original)
+            const index = b_idx * size * size + g_idx * size + r_idx; // Ordem BGR (Tentar esta)
+
             const lutEntry = lut.data[index];
+
+            // ... (código restante)
+
 
             if (lutEntry) {
                 data[i] = Math.round(lutEntry[0] * 255);
