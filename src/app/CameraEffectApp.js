@@ -220,10 +220,43 @@ export default function CameraEffectApp() {
     }, [currentLut, effectType, overlayLoaded]);
 
     // --- Captura ---
+    // --- Captura mantendo qualidade real ---
     const captureAndDownload = async () => {
         setStatus("Gerando foto...");
+
         try {
-            const canvas = canvasRef.current;
+            const video = videoRef.current;
+            const canvas = document.createElement("canvas"); // canvas temporário
+            const W = video.videoWidth;
+            const H = video.videoHeight;
+            canvas.width = W;
+            canvas.height = H;
+            const ctx = canvas.getContext("2d");
+
+            // Desenhar vídeo
+            ctx.drawImage(video, 0, 0, W, H);
+
+            // Desenhar overlay se estiver selecionado
+            const overlay = overlayRef.current;
+            if (overlay && (effectType === "default" || effectType === "overlay")) {
+                const ow = overlay.width;
+                const oh = overlay.height;
+                const scaleOverlay = Math.min(W / ow, H / oh);
+                const owScaled = ow * scaleOverlay;
+                const ohScaled = oh * scaleOverlay;
+                const ox = (W - owScaled) / 2;
+                const oy = (H - ohScaled) / 2;
+                ctx.drawImage(overlay, ox, oy, owScaled, ohScaled);
+            }
+
+            // Aplicar LUT apenas na captura
+            if (currentLut) {
+                let imageData = ctx.getImageData(0, 0, W, H);
+                imageData = applyLutToImageData(imageData, currentLut);
+                ctx.putImageData(imageData, 0, 0);
+            }
+
+            // Salvar foto
             canvas.toBlob((blob) => {
                 if (!blob) return;
                 const url = URL.createObjectURL(blob);
@@ -243,6 +276,7 @@ export default function CameraEffectApp() {
             setStatus("Erro ao capturar: " + (err.message || err));
         }
     };
+
 
     return (
         <div style={{ position: "relative", width: "100vw", height: "100vh", overflow: "hidden", background: "#000" }}>
